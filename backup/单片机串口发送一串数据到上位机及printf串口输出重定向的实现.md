@@ -78,3 +78,91 @@ void DelayXms(unsigned int xms);
 #endif
 
 ```
+# 查询方式
+## 代码
+
+> src/
+> ┣ delay.c
+> ┣ delay.h
+> ┣ main.c
+> ┣ uart.c
+> ┗ uart.h
+
+main.c
+```C
+#include <REG52.H>
+#include "delay.h"
+#include "uart.h"
+
+void main(void)
+{
+    UartInit(); // 串口初始化
+
+    while (1) {
+        sendByte('8');
+        DelayXms(2000);
+    }
+}
+
+```
+uart.c
+```C
+#include "uart.h"
+#include <REG52.H>
+void UartInit(void) // 9600bps@11.0592MHz
+{
+    PCON &= 0x7F; // 波特率不倍速
+    SCON = 0x50;  // 8位数据,可变波特率
+    TMOD &= 0x0F; // 设置定时器模式
+    TMOD |= 0x20; // 设置定时器模式
+    TL1 = 0xFD;   // 设置定时初始值
+    TH1 = 0xFD;   // 设置定时重载值
+    ET1 = 0;      // 禁止定时器中断
+    TR1 = 1;      // 定时器1开始计时
+}
+
+void sendByte(unsigned char dat) // 串口发送一个字节    这里数据不能用data ，因为data是保留字。(慎用ai帮写)
+{
+    SBUF = dat;
+    while (TI == 0);
+    TI = 0;
+}
+
+```
+delay.c
+```C
+
+#include"delay.h"
+
+void DelayXms(unsigned int xms) {
+    unsigned int i, j;
+    for (i = 0; i < xms; i++) {
+        for (j = 0; j < 124; j++);
+    }
+}
+
+```
+uart.h
+
+```C
+#ifndef __UART_H__
+#define __UART_H__
+
+void UartInit(void);
+
+void sendByte(unsigned char dat); // 串口发送一个字节
+
+#endif
+
+```
+delay.h
+```C
+
+#ifndef __DELAY_H__
+#define __DELAY_H__
+
+void DelayXms(unsigned int xms);
+
+#endif
+
+```

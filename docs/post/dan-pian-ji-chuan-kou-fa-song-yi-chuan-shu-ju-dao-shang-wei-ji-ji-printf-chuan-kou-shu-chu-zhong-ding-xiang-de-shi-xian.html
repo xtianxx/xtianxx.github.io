@@ -137,6 +137,76 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 
 <span class="pl-smi">void</span> <span class="pl-en">DelayXms</span>(<span class="pl-smi">unsigned <span class="pl-smi">int</span></span> <span class="pl-s1">xms</span>);
 
+<span class="pl-k">#endif</span></pre></div>
+<h1>查询方式</h1>
+<h2>代码</h2>
+<blockquote>
+<p>src/<br>
+┣ delay.c<br>
+┣ delay.h<br>
+┣ main.c<br>
+┣ uart.c<br>
+┗ uart.h</p>
+</blockquote>
+<p>main.c</p>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">#include</span> <span class="pl-s">&lt;REG52.H&gt;</span>
+<span class="pl-k">#include</span> <span class="pl-s">"delay.h"</span>
+<span class="pl-k">#include</span> <span class="pl-s">"uart.h"</span>
+
+<span class="pl-smi">void</span> <span class="pl-en">main</span>(<span class="pl-smi">void</span>)
+{
+    <span class="pl-en">UartInit</span>(); <span class="pl-c">// 串口初始化</span>
+
+    <span class="pl-k">while</span> (<span class="pl-c1">1</span>) {
+        <span class="pl-en">sendByte</span>(<span class="pl-c1">'8'</span>);
+        <span class="pl-en">DelayXms</span>(<span class="pl-c1">2000</span>);
+    }
+}</pre></div>
+<p>uart.c</p>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">#include</span> <span class="pl-s">"uart.h"</span>
+<span class="pl-k">#include</span> <span class="pl-s">&lt;REG52.H&gt;</span>
+<span class="pl-smi">void</span> <span class="pl-en">UartInit</span>(<span class="pl-smi">void</span>) <span class="pl-c">// 9600bps@11.0592MHz</span>
+{
+    <span class="pl-c1">PCON</span> &amp;= <span class="pl-c1">0x7F</span>; <span class="pl-c">// 波特率不倍速</span>
+    <span class="pl-c1">SCON</span> <span class="pl-c1">=</span> <span class="pl-c1">0x50</span>;  <span class="pl-c">// 8位数据,可变波特率</span>
+    <span class="pl-c1">TMOD</span> &amp;= <span class="pl-c1">0x0F</span>; <span class="pl-c">// 设置定时器模式</span>
+    <span class="pl-c1">TMOD</span> |= <span class="pl-c1">0x20</span>; <span class="pl-c">// 设置定时器模式</span>
+    <span class="pl-c1">TL1</span> <span class="pl-c1">=</span> <span class="pl-c1">0xFD</span>;   <span class="pl-c">// 设置定时初始值</span>
+    <span class="pl-c1">TH1</span> <span class="pl-c1">=</span> <span class="pl-c1">0xFD</span>;   <span class="pl-c">// 设置定时重载值</span>
+    <span class="pl-c1">ET1</span> <span class="pl-c1">=</span> <span class="pl-c1">0</span>;      <span class="pl-c">// 禁止定时器中断</span>
+    <span class="pl-c1">TR1</span> <span class="pl-c1">=</span> <span class="pl-c1">1</span>;      <span class="pl-c">// 定时器1开始计时</span>
+}
+
+<span class="pl-smi">void</span> <span class="pl-en">sendByte</span>(<span class="pl-smi">unsigned <span class="pl-smi">char</span></span> <span class="pl-s1">dat</span>) <span class="pl-c">// 串口发送一个字节    这里数据不能用data ，因为data是保留字。(慎用ai帮写)</span>
+{
+    <span class="pl-c1">SBUF</span> <span class="pl-c1">=</span> <span class="pl-s1">dat</span>;
+    <span class="pl-k">while</span> (<span class="pl-c1">TI</span> <span class="pl-c1">==</span> <span class="pl-c1">0</span>);
+    <span class="pl-c1">TI</span> <span class="pl-c1">=</span> <span class="pl-c1">0</span>;
+}</pre></div>
+<p>delay.c</p>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">#include</span><span class="pl-s">"delay.h"</span>
+
+<span class="pl-smi">void</span> <span class="pl-en">DelayXms</span>(<span class="pl-smi">unsigned <span class="pl-smi">int</span></span> <span class="pl-s1">xms</span>) {
+    <span class="pl-smi">unsigned <span class="pl-smi">int</span></span> <span class="pl-s1">i</span>, <span class="pl-s1">j</span>;
+    <span class="pl-k">for</span> (<span class="pl-s1">i</span> <span class="pl-c1">=</span> <span class="pl-c1">0</span>; <span class="pl-s1">i</span> <span class="pl-c1">&lt;</span> <span class="pl-s1">xms</span>; <span class="pl-s1">i</span><span class="pl-c1">++</span>) {
+        <span class="pl-k">for</span> (<span class="pl-s1">j</span> <span class="pl-c1">=</span> <span class="pl-c1">0</span>; <span class="pl-s1">j</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">124</span>; <span class="pl-s1">j</span><span class="pl-c1">++</span>);
+    }
+}</pre></div>
+<p>uart.h</p>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">#ifndef</span> <span class="pl-s1">__UART_H__</span>
+<span class="pl-k">#define</span> <span class="pl-s1">__UART_H__</span>
+
+<span class="pl-smi">void</span> <span class="pl-en">UartInit</span>(<span class="pl-smi">void</span>);
+
+<span class="pl-smi">void</span> <span class="pl-en">sendByte</span>(<span class="pl-smi">unsigned <span class="pl-smi">char</span></span> <span class="pl-s1">dat</span>); <span class="pl-c">// 串口发送一个字节</span>
+
+<span class="pl-k">#endif</span></pre></div>
+<p>delay.h</p>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">#ifndef</span> <span class="pl-s1">__DELAY_H__</span>
+<span class="pl-k">#define</span> <span class="pl-s1">__DELAY_H__</span>
+
+<span class="pl-smi">void</span> <span class="pl-en">DelayXms</span>(<span class="pl-smi">unsigned <span class="pl-smi">int</span></span> <span class="pl-s1">xms</span>);
+
 <span class="pl-k">#endif</span></pre></div></div>
 <div style="font-size:small;margin-top:8px;float:right;">转载请注明出处</div>
 
