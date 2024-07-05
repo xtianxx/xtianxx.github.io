@@ -78,7 +78,7 @@ void DelayXms(unsigned int xms);
 #endif
 
 ```
-# 查询方式
+#  查询方式(常用)
 ## 代码
 
 > src/
