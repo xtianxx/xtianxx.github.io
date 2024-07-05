@@ -2,7 +2,7 @@
 # 环境
 1，Proteus仿真[连接图](https://xtianxx.github.io/48/1.png)，vps虚拟串口，vscode编译（EIDE）。
 
-# 中断方式
+# 串口中断方式
 
 ## 代码
 
