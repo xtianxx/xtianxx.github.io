@@ -10,23 +10,17 @@
         document.documentElement.setAttribute("data-color-mode", theme);
     </script>
 <meta name="description" content="[教程来源](https://www.bilibili.com/video/BV175411Y7TN/?spm_id_from=333.999.0.0&vd_source=d14c75864413529edfb05b0050105c4e)
-https://xtianxx.github.io/48/1.png
-
-
-
-。">
+# 环境
+1，Proteus仿真[连接图](https://xtianxx.github.io/48/1.png)，vps虚拟串口，vscode编译（EIDE）。">
 <meta property="og:title" content="单片机串口发送一串数据到上位机及printf串口输出重定向的实现">
 <meta property="og:description" content="[教程来源](https://www.bilibili.com/video/BV175411Y7TN/?spm_id_from=333.999.0.0&vd_source=d14c75864413529edfb05b0050105c4e)
-https://xtianxx.github.io/48/1.png
-
-
-
-。">
+# 环境
+1，Proteus仿真[连接图](https://xtianxx.github.io/48/1.png)，vps虚拟串口，vscode编译（EIDE）。">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://xtianxx.github.io/post/dan-pian-ji-chuan-kou-fa-song-yi-chuan-shu-ju-dao-shang-wei-ji-ji-printf-chuan-kou-shu-chu-zhong-ding-xiang-de-shi-xian.html">
 <meta property="og:image" content="https://avatars.githubusercontent.com/u/126951376?v=4&size=64">
 <title>单片机串口发送一串数据到上位机及printf串口输出重定向的实现</title>
-
+<link href="//unpkg.com/@wooorm/starry-night@2.1.1/style/both.css" rel="stylesheet" />
 
 </head>
 <style>
@@ -80,8 +74,70 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 </div>
 </div>
     <div id="content">
-<div class="markdown-body" id="postBody"><p><a href="https://www.bilibili.com/video/BV175411Y7TN/?spm_id_from=333.999.0.0&amp;vd_source=d14c75864413529edfb05b0050105c4e" rel="nofollow">教程来源</a><br>
-<a href="https://xtianxx.github.io/48/1.png" rel="nofollow">https://xtianxx.github.io/48/1.png</a></p></div>
+<div class="markdown-body" id="postBody"><p><a href="https://www.bilibili.com/video/BV175411Y7TN/?spm_id_from=333.999.0.0&amp;vd_source=d14c75864413529edfb05b0050105c4e" rel="nofollow">教程来源</a></p>
+<h1>环境</h1>
+<p>1，Proteus仿真<a href="https://xtianxx.github.io/48/1.png" rel="nofollow">连接图</a>，vps虚拟串口，vscode编译（EIDE）。</p>
+<h1>中断方式</h1>
+<h2>代码</h2>
+<blockquote>
+<p>src/<br>
+┣ delay.c<br>
+┣ delay.h<br>
+┗ main.c</p>
+</blockquote>
+<p><strong>main.c</strong></p>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">#include</span> <span class="pl-s">&lt;REG52.H&gt;</span>
+<span class="pl-k">#include</span> <span class="pl-s">"delay.h"</span>
+
+<span class="pl-smi">void</span> <span class="pl-en">UartInit</span>(<span class="pl-smi">void</span>);
+<span class="pl-smi">void</span> <span class="pl-en">main</span>(<span class="pl-smi">void</span>)
+{
+    <span class="pl-en">UartInit</span>();
+
+    <span class="pl-k">while</span> (<span class="pl-c1">1</span>) {
+        <span class="pl-c1">SBUF</span> <span class="pl-c1">=</span> <span class="pl-c1">0x88</span>;
+
+        <span class="pl-en">DelayXms</span>(<span class="pl-c1">2000</span>);
+    }
+}
+
+<span class="pl-smi">void</span> <span class="pl-en">UartInit</span>(<span class="pl-smi">void</span>) <span class="pl-c">// 9600bps@11.0592MHz</span>
+{
+    <span class="pl-c1">PCON</span> &amp;= <span class="pl-c1">0x7F</span>; <span class="pl-c">// 波特率不倍速</span>
+    <span class="pl-c1">SCON</span> <span class="pl-c1">=</span> <span class="pl-c1">0x50</span>;  <span class="pl-c">// 8位数据,可变波特率</span>
+    <span class="pl-c1">TMOD</span> &amp;= <span class="pl-c1">0x0F</span>; <span class="pl-c">// 设置定时器模式</span>
+    <span class="pl-c1">TMOD</span> |= <span class="pl-c1">0x20</span>; <span class="pl-c">// 设置定时器模式</span>
+    <span class="pl-c1">TL1</span> <span class="pl-c1">=</span> <span class="pl-c1">0xFD</span>;   <span class="pl-c">// 设置定时初始值</span>
+    <span class="pl-c1">TH1</span> <span class="pl-c1">=</span> <span class="pl-c1">0xFD</span>;   <span class="pl-c">// 设置定时重载值</span>
+    <span class="pl-c1">ET1</span> <span class="pl-c1">=</span> <span class="pl-c1">0</span>;      <span class="pl-c">// 禁止定时器中断</span>
+    <span class="pl-c1">TR1</span> <span class="pl-c1">=</span> <span class="pl-c1">1</span>;      <span class="pl-c">// 定时器1开始计时</span>
+
+    <span class="pl-c1">ES</span> <span class="pl-c1">=</span> <span class="pl-c1">1</span>; <span class="pl-c">// 打开串口中断</span>
+    <span class="pl-c1">EA</span> <span class="pl-c1">=</span> <span class="pl-c1">1</span>; <span class="pl-c">// 打开总中断</span>
+}
+
+<span class="pl-smi">void</span> <span class="pl-en">uart_ISR</span>(<span class="pl-smi">void</span>) <span class="pl-s1">interrupt</span> <span class="pl-c1">4</span>
+{
+    <span class="pl-k">if</span> (<span class="pl-c1">TI</span> <span class="pl-c1">==</span> <span class="pl-c1">1</span>) {
+        <span class="pl-c1">TI</span> <span class="pl-c1">=</span> <span class="pl-c1">0</span>;
+    }
+}</pre></div>
+<p><strong>delay.c</strong></p>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">#include</span><span class="pl-s">"delay.h"</span>
+
+<span class="pl-smi">void</span> <span class="pl-en">DelayXms</span>(<span class="pl-smi">unsigned <span class="pl-smi">int</span></span> <span class="pl-s1">xms</span>) {
+    <span class="pl-smi">unsigned <span class="pl-smi">int</span></span> <span class="pl-s1">i</span>, <span class="pl-s1">j</span>;
+    <span class="pl-k">for</span> (<span class="pl-s1">i</span> <span class="pl-c1">=</span> <span class="pl-c1">0</span>; <span class="pl-s1">i</span> <span class="pl-c1">&lt;</span> <span class="pl-s1">xms</span>; <span class="pl-s1">i</span><span class="pl-c1">++</span>) {
+        <span class="pl-k">for</span> (<span class="pl-s1">j</span> <span class="pl-c1">=</span> <span class="pl-c1">0</span>; <span class="pl-s1">j</span> <span class="pl-c1">&lt;</span> <span class="pl-c1">124</span>; <span class="pl-s1">j</span><span class="pl-c1">++</span>);
+    }
+}</pre></div>
+<p><strong>delay.h</strong></p>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-k">#ifndef</span> <span class="pl-s1">__DELAY_H__</span>
+<span class="pl-k">#define</span> <span class="pl-s1">__DELAY_H__</span>
+
+<span class="pl-smi">void</span> <span class="pl-en">DelayXms</span>(<span class="pl-smi">unsigned <span class="pl-smi">int</span></span> <span class="pl-s1">xms</span>);
+
+<span class="pl-k">#endif</span></pre></div></div>
 <div style="font-size:small;margin-top:8px;float:right;">转载请注明出处</div>
 
 <button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
