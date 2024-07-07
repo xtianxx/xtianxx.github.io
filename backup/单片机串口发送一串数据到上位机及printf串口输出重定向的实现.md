@@ -180,3 +180,117 @@ void sendString(unsigned char *str) // 串口发送字符串 windows中 \r\n 是
 }
 ```
 **最后记得在uart.h中声明**
+
+# printf串口输出重定向
+
+## 用途
+
+由于 mcu 没有屏幕所以需要重写 putchar 函数。因为 printf 的底层函数是它。
+
+##代码
+重写后的 putchar 函数。
+同样需要在 uart.c 中定义和 uart.h 中声明
+```C
+
+char putchar(char c) // 串口发送一个字符
+{
+    sendByte(c);
+    return c;
+}
+
+```
+
+### 最终效果
+
+src/
+┣ delay.c
+┣ delay.h
+┣ main.c
+┣ uart.c
+┗ uart.h
+
+## 代码
+
+main.c
+```C
+#include <REG52.H>
+#include "delay.h"
+#include "uart.h"
+#include <STDIO.H>
+void main(void)
+{
+    unsigned char dat = 88;
+
+    UartInit(); // 串口初始化
+    while (1) {
+        printf("dat1 = %bd\r\n", dat);
+        //        sendString("Hello World!\r\n");
+        DelayXms(2000);
+    }
+}
+
+```
+
+uart.c
+```C
+
+#include "uart.h"
+#include <REG52.H>
+#include <STDIO.H>
+void UartInit(void) // 9600bps@11.0592MHz
+{
+    PCON &= 0x7F; // 波特率不倍速
+    SCON = 0x50;  // 8位数据,可变波特率
+    TMOD &= 0x0F; // 设置定时器模式
+    TMOD |= 0x20; // 设置定时器模式
+    TL1 = 0xFD;   // 设置定时初始值
+    TH1 = 0xFD;   // 设置定时重载值
+    ET1 = 0;      // 禁止定时器中断
+    TR1 = 1;      // 定时器1开始计时
+}
+
+void sendByte(unsigned char dat) // 串口发送一个字节    这里数据不能用data ，因为data是保留字。(慎用ai帮写)
+{
+    SBUF = dat;
+    while (TI == 0);
+    TI = 0;
+}
+
+void sendString(unsigned char *str) // 串口发送字符串
+{
+    while (*str) {
+        sendByte(*str);
+        str++;
+    }
+}
+
+char putchar(char c) // 串口发送一个字符
+{
+    sendByte(c);
+    return c;
+
+}
+
+```
+
+delay.c，delay.h  同上已省略
+
+uart.h
+```C
+#ifndef __UART_H__
+#define __UART_H__
+
+void UartInit(void); // 串口初始化
+
+void sendByte(unsigned char dat); // 串口发送一个字节
+
+void sendString(unsigned char *str); // 串口发送字符串
+
+char putchar(char c); // 串口发送一个字符
+
+#endif
+
+```
+
+# 注意事项
+printf 格式化输出时格式符与标准 C [不同如：](https://xtianxx.github.io/48/48-2.png) 具体需要到 c51 帮助文档中查看。
