@@ -168,15 +168,15 @@ void DelayXms(unsigned int xms);
 ```
 ###发送一串字符
 **在 uart.c 源文件中添加：**
-**也要在uart.h文件中声明**
+
 ```C
 
-void sendString(unsigned char *str) // 串口发送字符串
+void sendString(unsigned char *str) // 串口发送字符串 windows中 \r\n是换行，linux 中是 \n 。
 {
     while (*str) {
         sendByte(*str);
         str++;
     }
 }
-
 ```
+**最后记得在uart.h中声明**
