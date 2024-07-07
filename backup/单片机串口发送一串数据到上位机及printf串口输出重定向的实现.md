@@ -171,7 +171,7 @@ void DelayXms(unsigned int xms);
 
 ```C
 
-void sendString(unsigned char *str) // 串口发送字符串 windows中 \r\n是换行，linux 中是 \n 。
+void sendString(unsigned char *str) // 串口发送字符串 windows中 \r\n 是换行，linux 中是 \n 。
 {
     while (*str) {
         sendByte(*str);

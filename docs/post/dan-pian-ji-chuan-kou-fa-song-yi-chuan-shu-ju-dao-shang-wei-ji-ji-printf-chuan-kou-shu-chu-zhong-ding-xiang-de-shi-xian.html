@@ -210,7 +210,7 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 <span class="pl-k">#endif</span></pre></div>
 <p>###发送一串字符<br>
 <strong>在 uart.c 源文件中添加：</strong></p>
-<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-smi">void</span> <span class="pl-en">sendString</span>(<span class="pl-smi">unsigned <span class="pl-smi">char</span></span> <span class="pl-c1">*</span><span class="pl-s1">str</span>) <span class="pl-c">// 串口发送字符串 windows中 \r\n是换行，linux 中是 \n 。</span>
+<div class="highlight highlight-source-c"><pre class="notranslate"><span class="pl-smi">void</span> <span class="pl-en">sendString</span>(<span class="pl-smi">unsigned <span class="pl-smi">char</span></span> <span class="pl-c1">*</span><span class="pl-s1">str</span>) <span class="pl-c">// 串口发送字符串 windows中 \r\n 是换行，linux 中是 \n 。</span>
 {
     <span class="pl-k">while</span> (<span class="pl-c1">*</span><span class="pl-s1">str</span>) {
         <span class="pl-en">sendByte</span>(<span class="pl-c1">*</span><span class="pl-s1">str</span>);
