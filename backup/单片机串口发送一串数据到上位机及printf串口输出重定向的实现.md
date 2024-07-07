@@ -166,3 +166,17 @@ void DelayXms(unsigned int xms);
 #endif
 
 ```
+###发送一串字符
+**在 uart.c 源文件中添加：**
+**也要在uart.h文件中声明**
+```C
+
+void sendString(unsigned char *str) // 串口发送字符串
+{
+    while (*str) {
+        sendByte(*str);
+        str++;
+    }
+}
+
+```
