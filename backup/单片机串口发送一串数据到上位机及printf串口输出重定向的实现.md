@@ -294,4 +294,4 @@ char putchar(char c); // 串口发送一个字符
 
 # 注意事项
 printf 格式化输出时格式符与标准 C [不同如：](https://xtianxx.github.io/48/48-2.png) 具体需要到 c51 帮助文档中查看。
-dat数据要在串口初始化函数的的前面。
+dat 数据要在串口初始化函数的的前面。
